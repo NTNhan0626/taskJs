@@ -2,23 +2,23 @@ const Member = require("../models/Member");
 
 
 // sinh ra 40 thành viên trong team từ A1 - A40 đồng thời gán roles
-function generateMember() {
+function generateMember(size,numCore,numKey,numSub ) {
 
     let members = [];
-    for (let i = 1; i <= 40; i++) {
-        if (i === 1) {
+    for (let i = 1; i <= size; i++) {
+        if (i <= numCore) {
             const member = new Member("A" + i, "core");
             members.push(member);
         }
-        if (i >= 2 && i <= 6) {
+        if (i > numCore && i <= (numCore+numKey)) {
             const member = new Member("A" + i, "key");
             members.push(member);
         }
-        if (i >= 7 && i <= 11) {
+        if (i > (numCore+numKey) && i <= (numCore+numKey+numSub)) {
             const member = new Member("A" + i, "substitute");
             members.push(member);
         }
-        if (i > 11) {
+        if (i > (numCore+numKey+numSub)) {
             const member = new Member("A" + i, "nomal");
             members.push(member);
         }
@@ -27,7 +27,7 @@ function generateMember() {
 }
 // sinh ra các tôt hợp team ban đầu khi chưa có điều kiện lọc sẽ là 25 cách (1C1 * 5C1 * 5C1)
 function generateTeam() {
-    const members = generateMember();
+    const members = generateMember(40,1,5,5);
 
     let teams = [];
 
@@ -46,7 +46,7 @@ function generateTeam() {
 
 }
 // lấy các tổ hợp team sau khi đã lọc qua điều kiện cặp bày trùng và không hợp nhau
-function getValidTeams(requiredPairs, forbiddenPairs) {
+function getFilterTeams(requiredPairs, forbiddenPairs) {
     const teams = generateTeam();
 
     const validTeams = teams.filter(team => {
@@ -103,10 +103,10 @@ console.table(generateTeam().map(team => ({
 
 // In các team hợp lệ sau khi lọc theo ràng buộc
 console.log("\nValid teams after filtering:");
-const validTeams = getValidTeams(requiredPairs, forbiddenPairs);
-console.table(validTeams.map(team => ({
+const filterTeams = getFilterTeams(requiredPairs, forbiddenPairs);
+console.table(filterTeams.map(team => ({
     core: team[0].name,
     key: team[1].name,
     substitute: team[2].name
 })));
-console.log(`\n Total valid teams: ${validTeams.length}`);
+console.log(`\n Total valid teams: ${filterTeams.length}`);
