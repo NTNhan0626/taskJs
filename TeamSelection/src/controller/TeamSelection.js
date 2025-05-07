@@ -2,7 +2,7 @@ const Member = require("../models/Member");
 
 
 // sinh ra 40 thành viên trong team từ A1 - A40 đồng thời gán roles
-function generateMember(size,numCore,numKey,numSub ) {
+function generateMember(size, numCore, numKey, numSub) {
 
     let members = [];
     for (let i = 1; i <= size; i++) {
@@ -10,15 +10,15 @@ function generateMember(size,numCore,numKey,numSub ) {
             const member = new Member("A" + i, "core");
             members.push(member);
         }
-        if (i > numCore && i <= (numCore+numKey)) {
+        if (i > numCore && i <= (numCore + numKey)) {
             const member = new Member("A" + i, "key");
             members.push(member);
         }
-        if (i > (numCore+numKey) && i <= (numCore+numKey+numSub)) {
+        if (i > (numCore + numKey) && i <= (numCore + numKey + numSub)) {
             const member = new Member("A" + i, "substitute");
             members.push(member);
         }
-        if (i > (numCore+numKey+numSub)) {
+        if (i > (numCore + numKey + numSub)) {
             const member = new Member("A" + i, "nomal");
             members.push(member);
         }
@@ -27,7 +27,7 @@ function generateMember(size,numCore,numKey,numSub ) {
 }
 // sinh ra các tôt hợp team ban đầu khi chưa có điều kiện lọc sẽ là 25 cách (1C1 * 5C1 * 5C1)
 function generateTeam() {
-    const members = generateMember(40,1,5,5);
+    const members = generateMember(40, 1, 5, 5);
 
     let teams = [];
 
@@ -56,19 +56,19 @@ function getFilterTeams(requiredPairs, forbiddenPairs) {
 
         // nếu 1 team có 1 người của cặp bày trùng thì team đó bị loại 
         requiredPairs.forEach(pair => {
-            const [a, b] = pair;
-            const hasA = teamNames.includes(a);
-            const hasB = teamNames.includes(b);
-            if ((hasA && !hasB) || (!hasA && hasB)) {
+            const [namePersion1, namePersion2] = pair;
+            const hasPersion1 = teamNames.includes(namePersion1);
+            const hasPersion2 = teamNames.includes(namePersion2);
+            if ((hasPersion1 && !hasPersion2) || (!hasPersion1 && hasPersion2)) {
                 check = false;
             }
         });
         // nếu team đó có cả cặp không hợp nhau thì team đó bị loại
         forbiddenPairs.forEach(pair => {
-            const [a, b] = pair;
-            const hasA = teamNames.includes(a);
-            const hasB = teamNames.includes(b);
-            if (hasA && hasB) {
+            const [namePersion1, namePersion2] = pair;
+            const hasPersion1 = teamNames.includes(namePersion1);
+            const hasPersion2 = teamNames.includes(namePersion2);
+            if (hasPersion1 && hasPersion2) {
                 check = false;
             }
         });
@@ -79,17 +79,57 @@ function getFilterTeams(requiredPairs, forbiddenPairs) {
     return validTeams;
 }
 
+function canFormTeam(teamNames, member, requiredPairs, forbiddenPairs) {
+    const team = member.filter(m => teamNames.includes(m.name));
+    const roles = team.map(t => t.role);
+
+    const hasCore = roles.includes("core");
+    const hasKey = roles.includes("key");
+    const hasSub = roles.includes("substitute");
+
+    if (!hasCore) {
+        return "Team must include 1 core member.";
+    }
+    if (!hasKey) {
+        return "Team must include 1 key member.";
+    }
+    if (!hasSub) {
+        return "Team must include 1 substitute member.";
+    }
+
+    requiredPairs.forEach(pair => {
+        const [namePersion1, namePersion2] = pair;
+        const hasPersion1 = teamNames.includes(namePersion1);
+        const hasPersion2 = teamNames.includes(namePersion2);
+        if ((hasPersion1 && !hasPersion2) || (!hasPersion1 && hasPersion2)) {
+            return `Required pair violated: ${namePersion1} and ${namePersion2} must be together.`
+        }
+    });
+
+    forbiddenPairs.forEach(pair => {
+        const [namePersion1, namePersion2] = pair;
+        const hasPersion1 = teamNames.includes(namePersion1);
+        const hasPersion2 = teamNames.includes(namePersion2);
+        if (hasPersion1 && hasPersion2) {
+            return `Forbidden pair: ${namePersion1} and ${namePersion2} cannot be in the same team.`
+        }
+    });
+
+    return "Team can be created";
+
+}
+
 // ở đây hlv có thể chỉnh sửa danh sách cặp bày trùng và các cặp không hợp nhau để lọc ra các tổ hợp team thoả điều kiện
 // Các cặp bắt buộc phải đi chung (theo tên)
 const requiredPairs = [
-    ["A2", "A3"],   
-    ["A4", "A10"]   
+    ["A2", "A3"],
+    ["A4", "A10"]
 ];
 
 // Các cặp không được đi cùng đội
 const forbiddenPairs = [
-    ["A5", "A20"],   
-    ["A6", "A9"]    
+    ["A5", "A20"],
+    ["A6", "A9"]
 ];
 
 // In danh sách tất cả team
@@ -110,3 +150,9 @@ console.table(filterTeams.map(team => ({
     substitute: team[2].name
 })));
 console.log(`\n Total valid teams: ${filterTeams.length}`);
+
+// trả lời câu hỏi của ông thầy A1, A7, A17
+const teamNames = ["A1", "A7", "A17"];
+const members = generateMember(40,1,5,5);
+const answer = canFormTeam(teamNames, members, requiredPairs, forbiddenPairs);
+console.log(answer);
